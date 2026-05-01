@@ -31,6 +31,13 @@ export function ReceiveMessage() {
   });
 
   console.log("message:", messages);
+  const parsedMessages =
+    Array.isArray(messages) &&
+    messages.length >= 2 &&
+    Array.isArray(messages[0]) &&
+    Array.isArray(messages[1])
+      ? (messages as [string[], string[]])
+      : undefined;
 
   return (
     <div className="flex flex-col items-center mt-8 w-full max-w-6xl">
@@ -56,7 +63,7 @@ export function ReceiveMessage() {
           <Loader2 className="animate-spin mr-2" />
           <AlertDescription>Loading messages...</AlertDescription>
         </Alert>
-      ) : messages && messages[0].length > 0 ? (
+      ) : parsedMessages && parsedMessages[0].length > 0 ? (
         <Table className="w-full mt-4">
           <TableHeader>
             <TableRow>
@@ -66,10 +73,10 @@ export function ReceiveMessage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {messages[0].map((content: string, index: number) => (
+            {parsedMessages[0].map((content: string, index: number) => (
               <TableRow key={index}>
                 <TableCell>{index + 1}</TableCell>
-                <TableCell>{messages[1][index]}</TableCell>
+                <TableCell>{parsedMessages[1][index]}</TableCell>
                 <TableCell>{content}</TableCell>
               </TableRow>
             ))}
