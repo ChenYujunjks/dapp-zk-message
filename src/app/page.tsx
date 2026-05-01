@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { client } from "@/server";
 
-import { GetAddress } from "@/components/getAddressButton";
 import { Header } from "@/components/header";
 export default function Home() {
   // 使用 useActiveAccount 钩子来检查用户是否已连接钱包
@@ -26,7 +25,6 @@ export default function Home() {
           {/* 只有在钱包连接后才显示 ActiveAcc 组件和导航按钮 */}
           {activeAccount && (
             <>
-              <GetAddress />
               <Link
                 href="/message"
                 className="mt-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition duration-300"

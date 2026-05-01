@@ -1,8 +1,7 @@
 "use client";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
-
 import { client } from "@/server";
-import { myChain } from "@/server/contracts/message";
+import { myChain } from "@/server/contracts/zkmessage";
 
 // 导入 SendMessage 和 ReceiveMessage 组件
 import { SendMessage } from "@/components/message/sendMessage";

@@ -1,5 +1,5 @@
 "use client";
-import { CONTRACT } from "@/server/contracts/message";
+import { Contract } from "@/server/contracts/zkmessage";
 import { useReadContract } from "thirdweb/react";
 import { useActiveAccount } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ export function ReceiveMessage() {
     refetch,
     isFetching,
   } = useReadContract({
-    contract: CONTRACT,
+    contract: Contract,
     method: "receiveMessagesContentWithSender",
     params: [walletAddress as string], // 确保参数为 string[]
   });

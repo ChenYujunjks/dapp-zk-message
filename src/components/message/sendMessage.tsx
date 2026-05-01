@@ -1,5 +1,5 @@
 "use client";
-import { CONTRACT } from "@/server/contracts/message";
+import { Contract } from "@/server/contracts/zkmessage";
 import { prepareContractCall } from "thirdweb";
 import { TransactionButton } from "thirdweb/react";
 import { useState } from "react";
@@ -28,7 +28,7 @@ export function SendMessage() {
         <TransactionButton
           transaction={() =>
             prepareContractCall({
-              contract: CONTRACT,
+              contract: Contract,
               method: "sendMessage",
               params: [recipient, content],
             })
