@@ -1,7 +1,3 @@
-可以，这一段你可以直接写进 README，当成你项目的**核心流程说明（ZK message pipeline）**。我帮你整理成**工程级表达 + 清晰步骤**：
-
----
-
 # 🧠 ZK Message Workflow（系统工作流程）
 
 本项目实现了一个基于 **Zero-Knowledge Proof** 的链上消息系统，整体流程如下：
@@ -234,9 +230,3 @@ root 必须等于链上 merkleRoot
 → 链上验证并存储
 → 接收者读取消息
 ```
-
----
-
-如果你想把 README 再“升一个档次”（偏面试/项目展示），我可以帮你再加一段：
-
-👉 为什么这个设计比普通 messaging 更有价值（隐私 / membership proof / anti-spam）

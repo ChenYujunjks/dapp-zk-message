@@ -50,11 +50,14 @@ export function SendMessage() {
         body: JSON.stringify({ content }),
       });
 
+      const text = await res.text(); // 👈 先拿 raw
+
       if (!res.ok) {
+        console.error("Backend error:", text);
         throw new Error("Failed to generate proof");
       }
 
-      const proofData: ProofResponse = await res.json();
+      const proofData: ProofResponse = JSON.parse(text);
 
       const transaction = prepareContractCall({
         contract: Contract,

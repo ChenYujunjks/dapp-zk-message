@@ -7,7 +7,7 @@ export function Header() {
       <Image
         src={thirdwebIcon}
         alt=""
-        className="size-[150px] md:size-[150px]"
+        className="size-[150px]"
         style={{
           filter: "drop-shadow(0px 0px 24px #a726a9a8)",
         }}
@@ -19,12 +19,17 @@ export function Header() {
         <span className="inline-block -skew-x-6 text-blue-500"> CHAT </span>
       </h1>
 
-      <p className="text-zinc-300 text-base">
-        The true Chating
-        <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
-          DAPP
-        </code>{" "}
-        on EVM.
+      <p className="text-zinc-300 text-base text-center max-w-xl leading-relaxed">
+        A Zero-Knowledge enhanced
+        <br />
+        <span className="inline-flex items-center gap-2 mt-2">
+          <code className="bg-zinc-800 text-zinc-300 px-2 py-1 rounded text-sm">
+            decentralized messaging protocol
+          </code>
+        </span>
+        <br />
+        ensuring message authenticity, privacy, and Sybil-resistance — all
+        verified on-chain.
       </p>
     </header>
   );
