@@ -1,22 +1,27 @@
+import { generateProof } from "@/server/zk/generateProof";
 import { groth16 } from "snarkjs";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 async function main() {
-  const vkey = JSON.parse(
-    fs.readFileSync("server/zk/circuit/verification_key.json", "utf-8")
-  );
+  const result = await generateProof("hello from chicago");
 
-  const proofData = JSON.parse(
-    fs.readFileSync("build/merkle_message_proof.json", "utf-8")
-  );
+  const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+  const vkeyPath = path.join(scriptDir, "../zk/circuit/verification_key.json");
 
-  const publicSignals = JSON.parse(
-    fs.readFileSync("build/merkle_message_public.json", "utf-8")
-  );
+  const vkey = JSON.parse(fs.readFileSync(vkeyPath, "utf-8"));
 
-  const ok = await groth16.verify(vkey, publicSignals, proofData);
+  const ok = await groth16.verify(vkey, result.publicSignals, result.proof);
 
+  console.log("root:", result.root);
+  console.log("messageHash:", result.messageHash);
+  console.log("nullifierHash:", result.nullifierHash);
+  console.log("publicSignals:", result.publicSignals);
   console.log("verify result:", ok);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

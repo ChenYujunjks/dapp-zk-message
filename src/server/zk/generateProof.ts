@@ -1,46 +1,32 @@
 import { groth16 } from "snarkjs";
-import crypto from "crypto";
 import { buildPoseidon } from "circomlibjs";
-import { existsSync } from "fs";
+import crypto from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
-
-function resolveCircuitDir(): string {
-  const candidates = [
-    path.join(path.dirname(fileURLToPath(import.meta.url)), "circuit"),
-    path.join(process.cwd(), "src/server/zk/circuit"),
-    path.join(process.cwd(), "zk/circuit"),
-  ];
-  for (const dir of candidates) {
-    if (existsSync(path.join(dir, "merkle_message.wasm"))) {
-      return dir;
-    }
-  }
-  throw new Error(
-    `找不到电路文件 merkle_message.wasm，已尝试：\n${candidates.join("\n")}`,
-  );
-}
 
 const FIELD_SIZE = BigInt(
   "21888242871839275222246405745257275088548364400416034343698204186575808495617",
 );
 
-function sha256ToField(text: string) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function sha256ToField(text: string): string {
   const hex = crypto.createHash("sha256").update(text, "utf8").digest("hex");
-  return BigInt("0x" + hex) % FIELD_SIZE;
+  return (BigInt("0x" + hex) % FIELD_SIZE).toString();
 }
 
 export async function generateProof(content: string) {
   const poseidon = await buildPoseidon();
   const F = poseidon.F;
 
-  // 👉 这里你可以暂时写死（后面再做动态）
   const leaves = ["100", "101", "102", "103", "104", "105", "106", "107"];
   const index = 2;
   const leaf = leaves[index];
 
-  const hash2 = (a: string, b: string) =>
-    F.toObject(poseidon([BigInt(a), BigInt(b)])).toString();
+  const hash2 = (a: string, b: string): string => {
+    return F.toObject(poseidon([BigInt(a), BigInt(b)])).toString();
+  };
 
   const level1 = [
     hash2(leaves[0], leaves[1]),
@@ -56,7 +42,7 @@ export async function generateProof(content: string) {
   const pathElements = [leaves[3], level1[0], level2[1]];
   const pathIndices = ["0", "1", "0"];
 
-  const messageHash = sha256ToField(content).toString();
+  const messageHash = sha256ToField(content);
 
   const nullifier = "9002";
   const nullifierHash = hash2(nullifier, messageHash);
@@ -71,9 +57,8 @@ export async function generateProof(content: string) {
     nullifierHash,
   };
 
-  const circuitDir = resolveCircuitDir();
-  const wasmPath = path.join(circuitDir, "merkle_message.wasm");
-  const zkeyPath = path.join(circuitDir, "merkle_message_final.zkey");
+  const wasmPath = path.join(__dirname, "circuit/merkle_message.wasm");
+  const zkeyPath = path.join(__dirname, "circuit/merkle_message_final.zkey");
 
   const { proof, publicSignals } = await groth16.fullProve(
     input,
@@ -81,20 +66,24 @@ export async function generateProof(content: string) {
     zkeyPath,
   );
 
-  // ⚠️ 转换成 solidity 格式
-  const pA = [proof.pi_a[0], proof.pi_a[1]];
+  const pA: [string, string] = [proof.pi_a[0], proof.pi_a[1]];
 
-  const pB = [
+  // snarkjs pi_b needs to be reversed for Solidity verifier
+  const pB: [[string, string], [string, string]] = [
     [proof.pi_b[0][1], proof.pi_b[0][0]],
     [proof.pi_b[1][1], proof.pi_b[1][0]],
   ];
 
-  const pC = [proof.pi_c[0], proof.pi_c[1]];
+  const pC: [string, string] = [proof.pi_c[0], proof.pi_c[1]];
 
   return {
+    proof,
     pA,
     pB,
     pC,
     nullifierHash,
+    publicSignals,
+    root,
+    messageHash,
   };
 }
