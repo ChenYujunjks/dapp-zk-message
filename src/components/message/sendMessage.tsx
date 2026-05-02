@@ -113,7 +113,7 @@ export function SendMessage() {
         <Button
           onClick={handleSendMessage}
           disabled={loading}
-          className="px-4 py-2 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-300 transition-all duration-300"
+          className="bg-white text-black hover:bg-zinc-200 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 font-semibold rounded-lg shadow-md transition-all duration-300"
         >
           {loading ? (
             <div className="flex items-center gap-2">
