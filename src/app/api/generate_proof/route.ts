@@ -4,7 +4,12 @@ import { generateProof } from "@/server/zk/generateProof";
 export async function POST(req: Request) {
   const { content } = await req.json();
 
-  const proof = await generateProof(content);
+  const { pA, pB, pC, nullifierHash } = await generateProof(content);
 
-  return NextResponse.json(proof);
+  return NextResponse.json({
+    pA,
+    pB,
+    pC,
+    nullifierHash,
+  });
 }

@@ -1,7 +1,7 @@
 "use client";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { client } from "@/server";
-import { myChain } from "@/server/contracts/zkmessage";
+import { polygon } from "thirdweb/chains";
 
 // 导入 SendMessage 和 ReceiveMessage 组件
 import { SendMessage } from "@/components/message/sendMessage";
@@ -20,7 +20,7 @@ export default function Message() {
         <div className="flex flex-col items-center mb-20">
           <ConnectButton
             client={client}
-            chain={myChain}
+            chain={polygon}
             appMetadata={{
               name: "Example App",
               url: "localhost:3000",
