@@ -23,10 +23,7 @@ function uint256PairFromStrings(pair: readonly [string, string]) {
 function uint256Pair2FromStrings(
   m: readonly [readonly [string, string], readonly [string, string]],
 ) {
-  return [
-    uint256PairFromStrings(m[0]),
-    uint256PairFromStrings(m[1]),
-  ] as const;
+  return [uint256PairFromStrings(m[0]), uint256PairFromStrings(m[1])] as const;
 }
 
 export function SendMessage() {
@@ -66,10 +63,10 @@ export function SendMessage() {
         params: [
           recipient,
           content,
-          proofData.pA,
-          proofData.pB,
-          proofData.pC,
-          proofData.nullifierHash,
+          uint256PairFromStrings(proofData.pA),
+          uint256Pair2FromStrings(proofData.pB),
+          uint256PairFromStrings(proofData.pC),
+          BigInt(proofData.nullifierHash),
         ],
       });
 
