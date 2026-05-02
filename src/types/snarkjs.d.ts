@@ -16,6 +16,12 @@ declare module "snarkjs" {
       proof: Groth16Proof;
       publicSignals: string[];
     }>;
+
+    verify(
+      verificationKey: Record<string, unknown>,
+      publicSignals: string[],
+      proof: Groth16Proof,
+    ): Promise<boolean>;
   }
 
   export const groth16: Groth16;
