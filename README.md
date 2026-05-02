@@ -1,95 +1,242 @@
-# Capstone Project: Decentralized Messaging Application
+可以，这一段你可以直接写进 README，当成你项目的**核心流程说明（ZK message pipeline）**。我帮你整理成**工程级表达 + 清晰步骤**：
 
-## Overview
+---
 
-This project aims to create a decentralized messaging application using blockchain technology, focusing on secure and private communication. The application uses blockchain wallets for identity verification through Public Key Infrastructure (PKI) and prioritizes the optimization of gas fees for scalability and efficiency.
+# 🧠 ZK Message Workflow（系统工作流程）
 
-### Project Title
+本项目实现了一个基于 **Zero-Knowledge Proof** 的链上消息系统，整体流程如下：
 
-**Decentralized Messaging Service**
+---
 
-### Team Members
+## 📦 架构概览
 
-- **Yitan Li**: Responsible for designing the decentralized messaging app and implementing blockchain and wallet-based authentication.
-- **Bruce Chen**: Collaborating on blockchain integration and overall project architecture AND Assisting with system architecture and gas fee optimization strategies.
+```txt
+Frontend (Next.js + thirdweb)
+        ↓
+API Route (/api/generate-proof)
+        ↓
+Backend (generateProof.ts + snarkjs)
+        ↓
+Proof (pA, pB, pC, nullifierHash)
+        ↓
+Frontend 调用合约
+        ↓
+Smart Contract (Verifier + MyContract)
+        ↓
+链上验证 + 存储消息
+```
 
-### Supervisor
+---
 
-**Professor Lihua Xu**, NYU Shanghai
+## 🔄 详细流程
 
-## Project Motivation
+### 1️⃣ 用户发起请求（Frontend）
 
-The current messaging landscape faces challenges regarding user privacy and data control, as most platforms are centralized, allowing potential abuse of user data and third-party surveillance. This project aims to address these challenges by leveraging blockchain technology to build a messaging platform that offers privacy, data integrity, and decentralized control. The decentralized nature of the application ensures that only intended recipients have access to messages, enhancing privacy and user autonomy.
+用户在前端输入：
 
-## Objectives
+```txt
+Recipient Address (to)
+Message Content (content)
+```
 
-1. **Secure Messaging**: Develop a secure and decentralized communication platform leveraging blockchain wallets for identity verification.
-2. **Gas Fee Optimization**: Research and implement methods for reducing the gas costs associated with using the Ethereum blockchain, based on the work by C. Li, _"Gas Estimation and Optimization for Smart Contracts on Ethereum"_.
-3. **User-Friendly Experience**: Provide a straightforward user interface that integrates wallet authentication and blockchain messaging seamlessly.
+前端不会直接调用合约，而是先发送请求到后端：
 
-## Architecture
+```ts
+POST / api / generate - proof;
+body: {
+  content;
+}
+```
 
-The project architecture comprises:
+---
 
-- **Frontend**: A web-based user interface that allows users to interact with the decentralized messaging system. It uses React and Next.js frameworks for the front-end implementation.
-- **Backend and Smart Contracts**: Smart contracts deployed on an Ethereum-compatible blockchain. Thirdweb SDK is used to simplify contract deployment and wallet connections.
-- **Wallet-Based Authentication**: Using thirdweb for integration with popular wallets like MetaMask, ensuring secure, private, and convenient access.
+### 2️⃣ 后端生成 ZK Proof（API Route）
 
-## Features
+API 入口：
 
-- **Identity Verification**: Using blockchain wallets for verifying user identities, leveraging the security benefits of PKI.
-- **End-to-End Encrypted Messaging**: Ensuring message content is accessible only to the intended recipient by using asymmetric encryption techniques.
-- **Gas Optimization Strategies**: To make the platform cost-effective, gas optimization techniques are researched and implemented, focusing on reducing fees for smart contract interactions.
+```txt
+app/api/generate-proof/route.ts
+```
 
-## Tools & Technologies
+调用核心逻辑：
 
-- **Blockchain**: Ethereum-compatible blockchain (Polygon or Ethereum mainnet).
-- **Thirdweb SDK**: For smart contract deployment, wallet connections, and easier integration.
-- **React & Next.js**: For the user-facing interface.
-- **Solidity**: Smart contract programming language.
-- **Crypto Wallets**: Integration with MetaMask and other Ethereum wallets.
+```txt
+server/zk/generateProof.ts
+```
 
-## Installation
+---
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/username/decentralized-messaging-app.git
-   ```
-2. Install dependencies:
-   ```bash
-   cd decentralized-messaging-app
-   pnpm install
-   ```
-3. Start the development server:
-   ```bash
-   pnpm run dev
-   ```
-4. Access the application at `http://localhost:3000`.
+### 3️⃣ 构造电路输入（Witness Input）
 
-## How to Use
+后端根据消息内容构造输入：
 
-- **Connect Wallet**: Click on "Connect Wallet" to sign in with your Ethereum wallet (e.g., MetaMask).
-- **Send Messages**: Use the interface to send a message to another verified wallet address. Messages are encrypted and stored securely on-chain.
-- **View Messages**: Receive and decrypt messages using your private key, ensuring end-to-end privacy.
+```txt
+leaf
+pathElements
+pathIndices
+nullifier
+root
+messageHash = sha256(content) % FIELD_SIZE
+nullifierHash = Poseidon(nullifier, messageHash)
+```
 
-## Future Work
+其中：
 
-- **Scalability**: Research the use of Layer-2 scaling solutions to make the platform even more cost-effective.
-- **Enhanced User Experience**: Improve the messaging interface and explore mobile compatibility.
-- **Off-Chain Messaging**: Consider hybrid solutions to move some interactions off-chain for reduced costs while retaining privacy and security.
+```txt
+messageHash：绑定消息内容
+nullifierHash：防止 proof 重放
+```
 
-## Contributing
+---
 
-We welcome contributions to this project. Please submit pull requests and ensure that your code follows our style guide. Open issues to discuss potential improvements or report bugs.
+### 4️⃣ 生成 Proof（snarkjs）
 
-## License
+使用：
 
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+```ts
+groth16.fullProve(input, wasm, zkey);
+```
 
-## Contact
+生成：
 
-For any questions or further information, please contact:
+```txt
+proof.pi_a → pA
+proof.pi_b → pB（需要转换顺序）
+proof.pi_c → pC
+```
 
-- **Yitan Li**: [yl9314@nyu.edu](mailto:y9314@nyu.edu)
-- **Bruce Chen**: [yc5508@nyu.edu](mailto:yc5508@nyu.edu)
-- **Professor Lihua Xu**: Project Supervisor
+⚠️ 注意：
+
+```txt
+pB 必须做坐标交换（Solidity 要求）
+```
+
+---
+
+### 5️⃣ 返回 Proof 给前端
+
+后端返回：
+
+```json
+{
+  "pA": [...],
+  "pB": [...],
+  "pC": [...],
+  "nullifierHash": "..."
+}
+```
+
+---
+
+### 6️⃣ 前端调用合约（thirdweb）
+
+前端收到 proof 后，调用：
+
+```ts
+sendMessageWithProof(to, content, pA, pB, pC, nullifierHash);
+```
+
+---
+
+### 7️⃣ 链上验证逻辑（Smart Contract）
+
+合约内部执行：
+
+```solidity
+messageHash = sha256(content)
+pubSignals = [merkleRoot, messageHash, nullifierHash]
+verifier.verifyProof(...)
+```
+
+验证成功后：
+
+```txt
+✔ 标记 nullifierHash（防重放）
+✔ 存储消息
+✔ emit MessageSent
+```
+
+---
+
+### 8️⃣ 用户接收消息
+
+接收者调用：
+
+```solidity
+receiveMessagesContentWithSender(address)
+```
+
+前端通过：
+
+```ts
+useReadContract(...)
+```
+
+展示消息内容和发送者。
+
+---
+
+## ⚙️ 关键设计点
+
+### 🔐 数据绑定
+
+```txt
+messageHash = sha256(content)
+```
+
+确保 proof 与消息内容一致。
+
+---
+
+### 🔁 防重放攻击
+
+```txt
+nullifierHash 唯一
+```
+
+合约中：
+
+```solidity
+require(!usedNullifierHashes[nullifierHash])
+```
+
+---
+
+### 🌳 Merkle Tree 验证
+
+```txt
+root 必须等于链上 merkleRoot
+```
+
+确保发送者属于允许集合。
+
+---
+
+## 🧩 模块划分
+
+| 模块                | 作用                      |
+| ------------------- | ------------------------- |
+| Frontend            | 用户输入 + 发起交易       |
+| API Route           | 接收请求                  |
+| generateProof.ts    | 构造 witness + 生成 proof |
+| circuit (wasm/zkey) | ZK 电路执行               |
+| Verifier.sol        | 链上验证 proof            |
+| MyContract.sol      | 业务逻辑                  |
+
+---
+
+## 🚀 总结
+
+```txt
+用户输入消息
+→ 后端生成 ZK proof
+→ 前端调用合约发送
+→ 链上验证并存储
+→ 接收者读取消息
+```
+
+---
+
+如果你想把 README 再“升一个档次”（偏面试/项目展示），我可以帮你再加一段：
+
+👉 为什么这个设计比普通 messaging 更有价值（隐私 / membership proof / anti-spam）

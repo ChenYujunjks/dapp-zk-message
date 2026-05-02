@@ -1,7 +1,25 @@
 import { groth16 } from "snarkjs";
 import crypto from "crypto";
 import { buildPoseidon } from "circomlibjs";
+import { existsSync } from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+function resolveCircuitDir(): string {
+  const candidates = [
+    path.join(path.dirname(fileURLToPath(import.meta.url)), "circuit"),
+    path.join(process.cwd(), "src/server/zk/circuit"),
+    path.join(process.cwd(), "zk/circuit"),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(path.join(dir, "merkle_message.wasm"))) {
+      return dir;
+    }
+  }
+  throw new Error(
+    `找不到电路文件 merkle_message.wasm，已尝试：\n${candidates.join("\n")}`,
+  );
+}
 
 const FIELD_SIZE = BigInt(
   "21888242871839275222246405745257275088548364400416034343698204186575808495617",
@@ -53,14 +71,9 @@ export async function generateProof(content: string) {
     nullifierHash,
   };
 
-  const wasmPath = path.join(
-    process.cwd(),
-    "server/zk/circuit/merkle_message.wasm",
-  );
-  const zkeyPath = path.join(
-    process.cwd(),
-    "server/zk/circuit/merkle_message_final.zkey",
-  );
+  const circuitDir = resolveCircuitDir();
+  const wasmPath = path.join(circuitDir, "merkle_message.wasm");
+  const zkeyPath = path.join(circuitDir, "merkle_message_final.zkey");
 
   const { proof, publicSignals } = await groth16.fullProve(
     input,
