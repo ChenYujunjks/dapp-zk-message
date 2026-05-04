@@ -1,10 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ["snarkjs", "circomlibjs", "ffjavascript"],
-  // fixes wallet connect dependency issue https://docs.walletconnect.com/web3modal/nextjs/about#extra-configuration
+
   webpack: (config) => {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;
+  },
+
+  // 👇 关键就在这里
+  experimental: {
+    outputFileTracingIncludes: {
+      "/api/generate-proof": [
+        "./src/server/zk/circuit/merkle_message.wasm",
+        "./src/server/zk/circuit/merkle_message_final.zkey",
+      ],
+    },
   },
 };
 

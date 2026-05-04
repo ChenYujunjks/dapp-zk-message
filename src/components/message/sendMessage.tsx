@@ -50,7 +50,7 @@ export function SendMessage() {
         body: JSON.stringify({ content }),
       });
 
-      const text = await res.text(); // 👈 先拿 raw
+      const text = await res.text();
 
       if (!res.ok) {
         console.error("Backend error:", text);
